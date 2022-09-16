@@ -2,9 +2,8 @@
 
 namespace BookStoreApp.Api.Models.Author;
 
-public class AuthorGetSingleDto
+public class AuthorGetSingleDto : BaseDto
 {
-    public int Id { get; set; }
 
     [Required(AllowEmptyStrings = false)]
     [StringLength(50)]
