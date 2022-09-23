@@ -4,10 +4,12 @@ using BookStoreApp.Api.Models.Book;
 using Microsoft.EntityFrameworkCore;
 using System.Threading.Tasks;
 using AutoMapper.QueryableExtensions;
+using Microsoft.AspNetCore.Authorization;
 
 namespace BookStoreApp.Api.Controllers;
 [Route("api/[controller]")]
 [ApiController]
+[Authorize]
 public class BooksController : ControllerBase
 {
       private readonly BookStoreDbContext _context;
@@ -79,11 +81,12 @@ public class BooksController : ControllerBase
         [ProducesResponseType(204)]
         [ProducesResponseType(404)]
         [ProducesResponseType(500)]
-        public async Task<IActionResult> PutBook(int id, BookUpdateDto BookDto)
+        [Authorize(Roles = "Administrator")]
+        public async Task<IActionResult> PutBook(int id, BookUpdateDto bookDto)
         {
             try
             {
-                var book = _mapper.Map<Book>(BookDto);
+                var book = _mapper.Map<Book>(bookDto);
                 book.Id = id;
                 _context.Entry(book).State = EntityState.Modified;
 
@@ -108,12 +111,13 @@ public class BooksController : ControllerBase
         [HttpPost]
         [ProducesResponseType(201)]
         [ProducesResponseType(500)]
-        public async Task<ActionResult<BookCreateDto>> PostBook(BookCreateDto BookDto)
+        [Authorize(Roles = "Administrator")]
+        public async Task<ActionResult<BookCreateDto>> PostBook(BookCreateDto bookDto)
         {
 
             try
             {
-                var book = _mapper.Map<Book>(BookDto);
+                var book = _mapper.Map<Book>(bookDto);
 
                 await _context.Books.AddAsync(book);
                 await _context.SaveChangesAsync();
@@ -131,6 +135,7 @@ public class BooksController : ControllerBase
         [HttpDelete("{id}")]
         [ProducesResponseType(204)]
         [ProducesResponseType(404)]
+        [Authorize(Roles = "Administrator")]
         public async Task<IActionResult> DeleteBook(int id)
         {
             try

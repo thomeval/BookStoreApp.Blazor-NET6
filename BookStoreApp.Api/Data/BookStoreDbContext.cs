@@ -1,8 +1,10 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 
 namespace BookStoreApp.Api.Data
 {
-    public partial class BookStoreDbContext : DbContext
+    public partial class BookStoreDbContext : IdentityDbContext<ApiUser>
     {
         public BookStoreDbContext()
         {
@@ -22,6 +24,8 @@ namespace BookStoreApp.Api.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            base.OnModelCreating(modelBuilder);
+
             modelBuilder.Entity<Author>(entity =>
             {
                 entity.Property(e => e.Bio).HasMaxLength(250);
@@ -54,9 +58,13 @@ namespace BookStoreApp.Api.Data
                     .HasConstraintName("FK_Books_AuthorId");
             });
 
+            modelBuilder.Entity<IdentityRole>().HasData(DefaultData.DefaultRoles);
+            modelBuilder.Entity<ApiUser>().HasData(DefaultData.DefaultUsers);
+            modelBuilder.Entity<IdentityUserRole<string>>().HasData(DefaultData.DefaultUserRoles);
             OnModelCreatingPartial(modelBuilder);
         }
 
         partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
+
     }
 }
