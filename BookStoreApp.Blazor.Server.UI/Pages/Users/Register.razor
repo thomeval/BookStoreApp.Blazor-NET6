@@ -1,0 +1,73 @@
+﻿@page "/users/register"
+@inject IClient _httpClient
+@inject NavigationManager _navigationManager;
+
+<h3>Register New Account</h3>
+
+@if (string.IsNullOrEmpty(_message) == false)
+{
+    <div class="alert alert-danger">
+        <p>@_message</p>
+    </div>
+}
+
+<div class="card-body">
+    <EditForm Model="RegistrationModel" OnValidSubmit="HandleRegistration">
+        <DataAnnotationsValidator/>
+        <ValidationSummary/>
+
+    <div class="form-group">
+        <label for="email">Email Address</label>
+        <InputText id="email" class="form-control" @bind-Value="RegistrationModel.Email"/>
+        <ValidationMessage For="@(() => RegistrationModel.Email)"></ValidationMessage>
+    </div>
+        <br/>
+    <div class="form-group">
+        <label for="firstName">First Name</label>
+        <InputText id="firstName" class="form-control" @bind-Value="RegistrationModel.FirstName"/>
+        <ValidationMessage For="@(()=> RegistrationModel.FirstName)"></ValidationMessage>
+    </div>
+        <br/>
+    <div class="form-group">
+        <label for="lastName">Last Name</label>
+        <InputText id="lastName" class="form-control" @bind-Value="RegistrationModel.LastName"/>
+        <ValidationMessage For="@(()=> RegistrationModel.LastName)"></ValidationMessage>
+    </div>
+        <br/>
+        <div class="form-group">
+            <label for="password">Password</label>
+            <InputText id="password" class="form-control" type="password" @bind-Value="RegistrationModel.Password"/>
+            <ValidationMessage For="@(()=> RegistrationModel.Password)"></ValidationMessage>
+        </div>
+        <br/>
+        <button type="submit" class="btn btn-primary btn-block">Register</button>
+    </EditForm>
+</div>
+
+@code {
+    UserDto RegistrationModel = new UserDto{Role = "User"};
+
+    private string _message = string.Empty;
+    private async Task HandleRegistration()
+    {
+        try
+        {
+            await _httpClient.RegisterAsync(RegistrationModel);
+            _navigationManager.NavigateTo("/users/login");
+        }
+        catch (ApiException<ProblemDetails> ex)
+        {
+            _message = ex.Message;
+            foreach (var prop in ex.Result.AdditionalProperties)
+            {
+                _message += $"{prop.Value}\r\n";
+            }
+        }
+
+        catch (Exception ex)
+        {
+            _message = ex.Message;
+        }
+   
+    }
+}
