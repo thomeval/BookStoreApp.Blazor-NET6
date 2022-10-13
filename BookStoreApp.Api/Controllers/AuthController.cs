@@ -67,7 +67,7 @@ public class AuthController : ControllerBase
 
     [HttpPost]
     [Route("login")]
-    [ProducesResponseType(202)]
+    [ProducesResponseType(200)]
     [ProducesResponseType(401)]
     [ProducesResponseType(500)]
     public async Task<ActionResult<AuthResponse>> Login(UserLoginDto userLoginDto)
@@ -85,7 +85,7 @@ public class AuthController : ControllerBase
             var tokenString = await GenerateToken(user);
 
             var response = new AuthResponse { Email = user.Email, Token = tokenString, UserId = user.Id };
-            return Accepted(response);
+            return Ok(response);
         }
         catch (Exception ex)
         {
