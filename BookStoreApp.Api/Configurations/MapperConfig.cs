@@ -13,7 +13,9 @@ public class MapperConfig : Profile
         CreateMap<AuthorCreateDto, Author>().ReverseMap();
         CreateMap<AuthorGetAllDto, Author>().ReverseMap();
         CreateMap<AuthorGetSingleDto, Author>().ReverseMap();
+        CreateMap<AuthorDetailsDto, Author>().ReverseMap();
         CreateMap<AuthorUpdateDto, Author>().ReverseMap();
+    
 
         CreateMap<BookCreateDto, Book>().ReverseMap();
         CreateMap<BookGetAllDto, Book>().ReverseMap().ForMember(m => m.AuthorName, act => act.MapFrom(b => $"{b.Author.FirstName} {b.Author.LastName}"));

@@ -10,6 +10,8 @@ namespace BookStoreApp.Api.Controllers;
 [Route("api/[controller]")]
 [ApiController]
 [Authorize]
+[ProducesResponseType(200)]
+[ProducesResponseType(500)]
 public class BooksController : ControllerBase
 {
       private readonly BookStoreDbContext _context;
@@ -25,8 +27,6 @@ public class BooksController : ControllerBase
 
         // GET: api/Books
         [HttpGet]
-        [ProducesResponseType(200)]
-        [ProducesResponseType(500)]
         public async Task<ActionResult<List<BookGetAllDto>>> GetBooks()
         {
             try
@@ -47,9 +47,7 @@ public class BooksController : ControllerBase
 
         // GET: api/Books/5
         [HttpGet("{id}")]
-        [ProducesResponseType(200)]
         [ProducesResponseType(404)]
-        [ProducesResponseType(500)]
         public async Task<ActionResult<BookGetSingleDto>> GetBook(int id)
         {
             try
@@ -80,8 +78,7 @@ public class BooksController : ControllerBase
         [HttpPut("{id}")]
         [ProducesResponseType(204)]
         [ProducesResponseType(404)]
-        [ProducesResponseType(500)]
-        [Authorize(Roles = "Administrator")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> PutBook(int id, BookUpdateDto bookDto)
         {
             try
@@ -110,8 +107,7 @@ public class BooksController : ControllerBase
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
         [ProducesResponseType(201)]
-        [ProducesResponseType(500)]
-        [Authorize(Roles = "Administrator")]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<BookCreateDto>> PostBook(BookCreateDto bookDto)
         {
 
@@ -135,7 +131,7 @@ public class BooksController : ControllerBase
         [HttpDelete("{id}")]
         [ProducesResponseType(204)]
         [ProducesResponseType(404)]
-        [Authorize(Roles = "Administrator")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteBook(int id)
         {
             try

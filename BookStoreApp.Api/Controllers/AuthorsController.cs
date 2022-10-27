@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
 using AutoMapper;
+using AutoMapper.QueryableExtensions;
 using Microsoft.EntityFrameworkCore;
 using BookStoreApp.Api.Data;
 using BookStoreApp.Api.Models.Author;
@@ -11,6 +12,8 @@ namespace BookStoreApp.Api.Controllers
     [Route("api/[controller]")]
     [ApiController]
     [Authorize]
+    [ProducesResponseType(200)]
+    [ProducesResponseType(500)]
     public class AuthorsController : ControllerBase
     {
         private readonly BookStoreDbContext _context;
@@ -43,20 +46,22 @@ namespace BookStoreApp.Api.Controllers
 
         // GET: api/Authors/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<AuthorGetSingleDto>> GetAuthor(int id)
+        public async Task<ActionResult<AuthorDetailsDto>> GetAuthor(int id)
         {
             try
             {
-                var author = await _context.Authors.FindAsync(id);
-
+                var author = await _context.Authors
+                    .Include(e => e.Books)
+                    .ProjectTo<AuthorDetailsDto>(_mapper.ConfigurationProvider)
+                    .SingleOrDefaultAsync(e => e.Id == id);
+                    
                 if (author == null)
                 {
                     _logger.LogWarning("Unable to find Author with ID: " + id);
                     return NotFound();
                 }
 
-                var result = _mapper.Map<AuthorGetSingleDto>(author);
-                return result;
+                return Ok(author);
             }
             catch (Exception ex)
             {
@@ -68,7 +73,9 @@ namespace BookStoreApp.Api.Controllers
         // PUT: api/Authors/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        [Authorize(Roles = "Administrator")]
+        [Authorize(Roles = "Admin")]
+        [ProducesResponseType(204)]
+        [ProducesResponseType(404)]
         public async Task<IActionResult> PutAuthor(int id, AuthorUpdateDto authorDto)
         {
             try
@@ -96,7 +103,8 @@ namespace BookStoreApp.Api.Controllers
         // POST: api/Authors
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        [Authorize(Roles = "Administrator")]
+        [ProducesResponseType(201)]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<AuthorCreateDto>> PostAuthor(AuthorCreateDto authorDto)
         {
 
@@ -118,7 +126,9 @@ namespace BookStoreApp.Api.Controllers
 
         // DELETE: api/Authors/5
         [HttpDelete("{id}")]
-        [Authorize(Roles = "Administrator")]
+        [Authorize(Roles = "Admin")]
+        [ProducesResponseType(204)]
+        [ProducesResponseType(404)]
         public async Task<IActionResult> DeleteAuthor(int id)
         {
             try

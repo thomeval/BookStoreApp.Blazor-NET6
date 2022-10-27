@@ -1,15 +1,16 @@
-﻿@using System.Diagnostics.Eventing.Reader
-<CascadingAuthenticationState>
+﻿<CascadingAuthenticationState>
     <Router AppAssembly="@typeof(App).Assembly">
         <Found Context="routeData">
             <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)">
                 <NotAuthorized>
                     @if (context.User?.Identity?.IsAuthenticated == false)
                     {
+                        // Not logged in
                         <RedirectToLogin/>
                     }
                     else
                     {
+                        // Logged in, but role has insufficient permissions.
                         <div class="alert alert-warning">
                             <p>You are not authorized to access this resource.</p>
                         </div>
