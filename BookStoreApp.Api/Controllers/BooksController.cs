@@ -1,10 +1,12 @@
-﻿using AutoMapper;
+﻿using System.IO;
+using AutoMapper;
 using BookStoreApp.Api.Data;
 using BookStoreApp.Api.Models.Book;
 using Microsoft.EntityFrameworkCore;
 using System.Threading.Tasks;
 using AutoMapper.QueryableExtensions;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Hosting;
 
 namespace BookStoreApp.Api.Controllers;
 [Route("api/[controller]")]
@@ -17,12 +19,14 @@ public class BooksController : ControllerBase
       private readonly BookStoreDbContext _context;
         private readonly IMapper _mapper;
         private readonly ILogger<BooksController> _logger;
+        private readonly IWebHostEnvironment _webHostEnvironment;
 
-        public BooksController(BookStoreDbContext context, IMapper mapper, ILogger<BooksController> logger)
+        public BooksController(BookStoreDbContext context, IMapper mapper, ILogger<BooksController> logger, IWebHostEnvironment webHostEnvironment)
         {
             _context = context;
             _mapper = mapper;
             _logger = logger;
+            _webHostEnvironment = webHostEnvironment;
         }
 
         // GET: api/Books
@@ -52,6 +56,7 @@ public class BooksController : ControllerBase
         {
             try
             {
+          
                 var book = await _context.Books
                     .Include(b => b.Author)
                     .ProjectTo<BookGetSingleDto>(_mapper.ConfigurationProvider)
@@ -83,9 +88,21 @@ public class BooksController : ControllerBase
         {
             try
             {
-                var book = _mapper.Map<Book>(bookDto);
-                book.Id = id;
-                _context.Entry(book).State = EntityState.Modified;
+
+                var existingBook = await _context.Books.FindAsync(id);
+                if (existingBook == null)
+                {
+                    return NotFound();
+                }
+
+                if (!string.IsNullOrEmpty(bookDto.ImageData))
+                {
+                    bookDto.Image = CreateFile(bookDto.ImageData, bookDto.OriginalImageName);
+                    DeleteFile(existingBook.Image);
+                }
+
+                _mapper.Map(bookDto, existingBook);
+                _context.Entry(existingBook).State = EntityState.Modified;
 
                 await _context.SaveChangesAsync();
             }
@@ -114,6 +131,7 @@ public class BooksController : ControllerBase
             try
             {
                 var book = _mapper.Map<Book>(bookDto);
+                book.Image = CreateFile(bookDto.ImageData, bookDto.OriginalImageName);
 
                 await _context.Books.AddAsync(book);
                 await _context.SaveChangesAsync();
@@ -152,11 +170,46 @@ public class BooksController : ControllerBase
             {
                 _logger.LogError(ex, $"Error Performing DELETE in {nameof(DeleteBook)}");
                 return this.ServerError();
+
             }
         }
 
         private async Task<bool> BookExists(int id)
         {
             return await (_context.Books.AnyAsync(e => e.Id == id));
+        }
+
+        private string CreateFile(string imgBase64, string imgName)
+        {
+            var url = HttpContext.Request.Host.Value;
+      
+            var ext = Path.GetExtension(imgName);
+            var fileName = $"{Guid.NewGuid()}{ext}";
+            var path = GetFullPath(fileName);
+
+            var imgContent = Convert.FromBase64String(imgBase64);
+            System.IO.File.WriteAllBytes(path, imgContent);
+
+            return $"{fileName}";
+        }
+
+        private string GetFullPath(string fileName)
+        {
+            return $"{_webHostEnvironment.WebRootPath}\\bookcoverimages\\{fileName}";
+        }
+
+        private void DeleteFile(string? fileName)
+        {
+            if (string.IsNullOrEmpty(fileName))
+            {
+                return;
+            }
+
+            var path = GetFullPath(fileName);
+
+            if (System.IO.File.Exists(path))
+            {
+                System.IO.File.Delete(path);
+            }
         }
 }

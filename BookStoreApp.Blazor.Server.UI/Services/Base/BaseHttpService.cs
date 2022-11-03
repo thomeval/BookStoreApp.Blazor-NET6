@@ -45,4 +45,12 @@ public class BaseHttpService
             Client.HttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("bearer", token);
         }
     }
+
+    public string BaseUrl
+    {
+        get
+        {
+            return Client.HttpClient.BaseAddress!.ToString();
+        }
+    }
 }

@@ -2,6 +2,8 @@
 
 namespace BookStoreApp.Api.Models.Author;
 
+#nullable disable 
+
 public class AuthorUpdateDto
 {
     [Required(AllowEmptyStrings = false)]

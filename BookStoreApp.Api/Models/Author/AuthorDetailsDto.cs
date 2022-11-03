@@ -7,5 +7,4 @@ public class AuthorDetailsDto : AuthorGetSingleDto
 {
     
     public List<BookGetSingleDto> Books { get; set; }
-
 }

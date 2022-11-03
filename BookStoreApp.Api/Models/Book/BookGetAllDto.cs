@@ -10,6 +10,7 @@ public class BookGetAllDto : BaseDto
     public string Title { get; set; }
     public string Image { get; set; }
 
+    [Required]
     [Range(0, int.MaxValue)]
     public decimal Price { get; set; }
 

@@ -12,7 +12,7 @@ public class BookGetSingleDto : BaseDto
 
     [Required]
     [Range(1800, int.MaxValue)]
-    public int? Year { get; set; }
+    public int Year { get; set; }
 
     [Required]
     public string Isbn { get; set; }

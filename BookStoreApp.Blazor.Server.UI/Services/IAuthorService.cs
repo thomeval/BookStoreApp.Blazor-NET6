@@ -11,5 +11,4 @@ public interface IAuthorService
     Task<Response<int>> Delete(int id);
 
     AuthorUpdateDto ToUpdateDto(AuthorDetailsDto dto);
-
 }

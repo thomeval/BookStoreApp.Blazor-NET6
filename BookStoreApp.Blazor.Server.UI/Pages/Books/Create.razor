@@ -1,0 +1,142 @@
+﻿@page "/books/create"
+@inject IBookService _bookService
+@inject IAuthorService _authorService
+@inject NavigationManager _navigationManager
+
+@attribute [Authorize(Roles="Admin")]
+
+<h3>Create Book</h3>
+<EditForm Model="_book" OnValidSubmit="CreateBook"> 
+    <DataAnnotationsValidator/>
+    <ValidationSummary/>
+    
+    <div class="form-group">
+        <label for="title">Title</label>
+        <InputText @bind-Value="_book.Title" class="form-control" id="title"/>
+        <ValidationMessage For="@(() => _book.Title)"/>
+    </div>
+    
+    <div class="form-group">
+        <label for="isbn">ISBN</label>
+        <InputText @bind-Value="_book.Isbn" class="form-control" id="isbn"/>
+        <ValidationMessage For="@(() => _book.Isbn)"/>
+    </div>
+    
+    <div class="form-group">
+        <label for="price">Price</label>
+        <InputNumber @bind-Value="_book.Price" class="form-control" id="price"/>
+        <ValidationMessage For="@(() => _book.Price)"/>
+    </div>
+    
+    <div class="form-group">
+        <label for="year">Year</label>
+        <InputNumber @bind-Value="_book.Year" class="form-control" id="year"/>
+        <ValidationMessage For="@(() => _book.Year)"/>
+    </div>
+
+    <div class="form-group">
+        <label for="summary">Summary</label>
+        <InputTextArea @bind-Value="_book.Summary" class="form-control" id="summary"/>
+        <ValidationMessage For="@(() => _book.Summary)"/>
+    </div>
+    
+    <div class="form-group">
+        <label for="author">Author</label>
+        <InputSelect @bind-Value="_book.AuthorId" class="form-select" id="author">
+            <option value="">Select Author</option>
+            @foreach (var author in _authors)
+            {
+                <option value="@author.Id">@author.FirstName @author.LastName</option>
+            }
+        </InputSelect>
+    </div>
+    <br/>
+    <div class="form-group">
+        <label>Book Cover Photo</label>
+        <div>
+            <InputFile OnChange="FileSelected"/>
+            <img src="@_img" width="100" height="100" class="img-thumbnail"/>
+            <p class="text-danger">@_uploadFileWarning</p>
+        </div>
+    </div>
+    <br/>
+    <button class="btn btn-primary" type="submit">
+        <span class="oi oi-pencil"></span>
+        Create Book
+    </button>
+    <button @onclick="BackToList" class="btn btn-outline-secondary" type="button">
+        <span class="oi oi-pencil"></span>
+        Back To List
+    </button>
+    </EditForm>
+
+@code {
+
+    private List<AuthorGetAllDto> _authors = new();
+    private readonly BookCreateDto _book = new();
+    private string _uploadFileWarning = string.Empty;
+    private string _img = string.Empty;
+    private long _maxFileSize = 1024 * 1024 * 5;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var response = await _authorService.GetAll();
+
+        if (response.Success)
+        {
+            _authors = response.Data;
+        }
+    }
+
+    private async Task CreateBook()
+    {
+        var response = await _bookService.Create(_book);
+
+        if (response.Success)
+        {
+            BackToList();
+        }
+    }
+
+    private async Task FileSelected(InputFileChangeEventArgs args)
+    {
+        string[] validExtensions = { ".jpg", ".png", ".jpeg" };
+        var file = args.File;
+
+        var ext = Path.GetExtension(file.Name).ToLower();
+
+        if (!validExtensions.Contains(ext))
+        {
+            _uploadFileWarning = "Please select a valid image file (*.jpg, | *.png)";
+            return;
+        }
+
+        if (file.Size > _maxFileSize)
+        {
+            _uploadFileWarning = "This file is too large. Please select a file smaller than 5 MB.";
+            return;
+        }
+
+
+        var bytes = await ReadAllBytes(file);
+        var b64String = Convert.ToBase64String(bytes);
+        var imageType = file.ContentType;
+        _book.ImageData = b64String;
+        _book.OriginalImageName = file.Name;
+        _img = $"data:{imageType}; base64,{b64String}";
+        _uploadFileWarning = string.Empty;
+    }
+
+    private async Task<byte[]> ReadAllBytes(IBrowserFile file)
+    {
+        var bytes = new byte[file.Size];
+        await file.OpenReadStream(_maxFileSize).ReadAsync(bytes);
+        return bytes;
+    }
+
+    private void BackToList()
+    {
+        _navigationManager.NavigateTo("/books");
+    }
+
+}
