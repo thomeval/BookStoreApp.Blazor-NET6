@@ -13,6 +13,7 @@ builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
 builder.Services.AddBlazoredLocalStorage();
 builder.Services.AddHttpClient<IClient, Client>((cl) => cl.BaseAddress = new Uri("https://localhost:7087"));
+
 // NOTE: Order matters, since AuthenticationService needs HttpClient.
 builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
 builder.Services.AddScoped<ApiAuthenticationStateProvider>();
