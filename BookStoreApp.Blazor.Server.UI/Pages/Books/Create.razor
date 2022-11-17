@@ -1,4 +1,5 @@
 ﻿@page "/books/create"
+@using BookStoreApp.Blazor.Server.UI.Models
 @inject IBookService _bookService
 @inject IAuthorService _authorService
 @inject NavigationManager _navigationManager
@@ -80,11 +81,12 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var response = await _authorService.GetAll();
+        var queryParams = new QueryParameters { PageSize = 9999 };
+        var response = await _authorService.GetAll(queryParams);
 
         if (response.Success)
         {
-            _authors = response.Data;
+            _authors = response.Data.Items!.ToList();
         }
     }
 

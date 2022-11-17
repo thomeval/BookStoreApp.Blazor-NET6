@@ -1,8 +1,5 @@
 ﻿@page "/books/details/{Id:int}"
 
-@inject IBookService _bookService
-@inject NavigationManager _navigationManager
-
 <h3>Author Details</h3>
 <EditForm Model="_book">
     <fieldset disabled="true">
@@ -52,34 +49,3 @@
         Back To List
     </button>
 </EditForm>
-@code {
-
-
-
-    [Parameter]
-    public int Id { get; set; }
-
-    private BookGetSingleDto _book = new();
-    protected override async Task OnInitializedAsync()
-    {
-        var response = await _bookService.Get(Id);
-
-        if (!response.Success)
-        {
-            return;
-        }
-
-        _book = response.Data;
-    }
-
-    private void GoToEdit()
-    {
-        _navigationManager.NavigateTo($"/books/update/{Id}");
-    }
-    private void BackToList()
-    {
-        _navigationManager.NavigateTo("/books");
-    }
-
-
-}

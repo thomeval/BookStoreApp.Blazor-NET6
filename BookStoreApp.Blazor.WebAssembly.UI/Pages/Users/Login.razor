@@ -1,6 +1,5 @@
 ﻿@page "/users/login"
-@inject IAuthenticationService _authService;
-@inject NavigationManager _navigationManager;
+
 
 <h3>Login</h3>
 
@@ -33,31 +32,5 @@
 </div>
 @code {
 
-    public UserLoginDto LoginModel = new();
 
-    private string _message = string.Empty;
-
-    public async Task HandleLogin()
-    {
-        try
-        {
-            var response = await _authService.AuthenticateAsync(LoginModel);
-
-            if (response)
-            {
-                _navigationManager.NavigateTo("/");
-                return;
-            }
-
-            _message = "Invalid credentials. Please try again.";
-        }
-        catch (ApiException<ProblemDetails> ex)
-        {
-        }
-
-        catch (Exception ex)
-        {
-            _message = ex.Message;
-        }
-    }
 }

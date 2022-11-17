@@ -22,7 +22,7 @@ public class BaseHttpService
             case 400:
                 return GetResponse<T>("Validation errors have occurred.", apiException.Response);
             case 401:
-                return GetResponse<T>("The user is not logged in.");
+                return GetResponse<T>("The user is not logged in, or login credentials are invalid.");
             case 403:
                 return GetResponse<T>("The user is not authorized to perform this action.");
             case 404:

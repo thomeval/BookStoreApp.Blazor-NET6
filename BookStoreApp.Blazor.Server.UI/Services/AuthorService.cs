@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Blazored.LocalStorage;
+using BookStoreApp.Blazor.Server.UI.Models;
 using BookStoreApp.Blazor.Server.UI.Services.Base;
 
 namespace BookStoreApp.Blazor.Server.UI.Services;
@@ -13,16 +14,36 @@ public class AuthorService : BaseHttpService, IAuthorService
         _mapper = mapper;
     }
 
+    public async Task<Response<AuthorGetAllDtoVirtualizeResponse>> GetAll(QueryParameters queryParams)
+    {
+        try
+        {
+            await GetBearerToken();
+            var data = await Client.AuthorsGETAsync(queryParams.StartIndex, queryParams.PageSize);
+
+            var response = new Response<AuthorGetAllDtoVirtualizeResponse>
+            {
+                Data = data,
+                Success = true
+            };
+            return response;
+        }
+        catch (ApiException ex)
+        {
+            return ConvertApiExceptions<AuthorGetAllDtoVirtualizeResponse>(ex);
+        }
+    }
+
     public async Task<Response<List<AuthorGetAllDto>>> GetAll()
     {
         try
         {
             await GetBearerToken();
-            var authors = await Client.AuthorsAllAsync();
+            var data = await Client.GetAllAsync();
 
             var response = new Response<List<AuthorGetAllDto>>
             {
-                Data = authors.ToList(),
+                Data = data.ToList(),
                 Success = true
             };
             return response;
@@ -95,7 +116,7 @@ public class AuthorService : BaseHttpService, IAuthorService
         try
         {
             await GetBearerToken();
-            var data = await Client.AuthorsGETAsync(id);
+            var data = await Client.AuthorsGET2Async(id);
 
             
             var response = new Response<AuthorDetailsDto>

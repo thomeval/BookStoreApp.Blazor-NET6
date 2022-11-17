@@ -1,6 +1,7 @@
 using System.Text;
 using BookStoreApp.Api.Configurations;
 using BookStoreApp.Api.Data;
+using BookStoreApp.Api.Repositories;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Identity;
@@ -22,6 +23,8 @@ builder.Services.AddIdentityCore<ApiUser>(opt => opt.Password = passwordOptions)
     .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<BookStoreDbContext>();
 
+builder.Services.AddScoped<IAuthorsRepository, AuthorsRepository>();
+builder.Services.AddScoped<IBooksRepository, BooksRepository>();
 builder.Services.AddAutoMapper(typeof(MapperConfig));
 
 builder.Services.AddControllers();

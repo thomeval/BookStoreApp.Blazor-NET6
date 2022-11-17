@@ -2,9 +2,8 @@
 using AutoMapper;
 using BookStoreApp.Api.Data;
 using BookStoreApp.Api.Models.Book;
-using Microsoft.EntityFrameworkCore;
 using System.Threading.Tasks;
-using AutoMapper.QueryableExtensions;
+using BookStoreApp.Api.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 
@@ -16,14 +15,14 @@ namespace BookStoreApp.Api.Controllers;
 [ProducesResponseType(500)]
 public class BooksController : ControllerBase
 {
-      private readonly BookStoreDbContext _context;
-        private readonly IMapper _mapper;
+    private readonly IBooksRepository _repository;
+    private readonly IMapper _mapper;
         private readonly ILogger<BooksController> _logger;
         private readonly IWebHostEnvironment _webHostEnvironment;
 
-        public BooksController(BookStoreDbContext context, IMapper mapper, ILogger<BooksController> logger, IWebHostEnvironment webHostEnvironment)
+        public BooksController(IBooksRepository repository, IMapper mapper, ILogger<BooksController> logger, IWebHostEnvironment webHostEnvironment)
         {
-            _context = context;
+            _repository = repository;
             _mapper = mapper;
             _logger = logger;
             _webHostEnvironment = webHostEnvironment;
@@ -35,10 +34,7 @@ public class BooksController : ControllerBase
         {
             try
             {
-                var books = await _context.Books
-                    .Include(b => b.Author)
-                    .ProjectTo<BookGetAllDto>(_mapper.ConfigurationProvider)
-                    .ToListAsync();
+                var books = await _repository.GetAllBooksAsync();
 
                 return Ok(books);
             }
@@ -56,12 +52,8 @@ public class BooksController : ControllerBase
         {
             try
             {
-          
-                var book = await _context.Books
-                    .Include(b => b.Author)
-                    .ProjectTo<BookGetSingleDto>(_mapper.ConfigurationProvider)
-                    .SingleOrDefaultAsync(e => e.Id == id);
-
+                var book = await _repository.GetBookAsync(id);
+                
                 if (book == null)
                 {
                     _logger.LogWarning("Unable to find Book with ID: " + id);
@@ -86,10 +78,8 @@ public class BooksController : ControllerBase
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> PutBook(int id, BookUpdateDto bookDto)
         {
-            try
-            {
-
-                var existingBook = await _context.Books.FindAsync(id);
+            
+                var existingBook = await _repository.GetAsync(id);
                 if (existingBook == null)
                 {
                     return NotFound();
@@ -100,15 +90,16 @@ public class BooksController : ControllerBase
                     bookDto.Image = CreateFile(bookDto.ImageData, bookDto.OriginalImageName);
                     DeleteFile(existingBook.Image);
                 }
-
+            
                 _mapper.Map(bookDto, existingBook);
-                _context.Entry(existingBook).State = EntityState.Modified;
 
-                await _context.SaveChangesAsync();
-            }
+                try
+                {
+                    await _repository.UpdateAsync(existingBook);
+                }
             catch (Exception ex)
             {
-                if (!await BookExists(id))
+                if (!await _repository.Exists(id))
                 {
                     return NotFound();
                 }
@@ -133,8 +124,7 @@ public class BooksController : ControllerBase
                 var book = _mapper.Map<Book>(bookDto);
                 book.Image = CreateFile(bookDto.ImageData, bookDto.OriginalImageName);
 
-                await _context.Books.AddAsync(book);
-                await _context.SaveChangesAsync();
+                await _repository.AddAsync(book);
 
                 return CreatedAtAction(nameof(GetBook), new { id = book.Id }, book);
             }
@@ -154,15 +144,14 @@ public class BooksController : ControllerBase
         {
             try
             {
-                var book = await _context.Books.FindAsync(id);
+                var book = await _repository.GetAsync(id);
                 if (book == null)
                 {
                     _logger.LogWarning("Unable to find Book with ID: " + id);
                     return NotFound();
                 }
 
-                _context.Books.Remove(book);
-                await _context.SaveChangesAsync();
+                await _repository.DeleteAsync(id);
 
                 return NoContent();
             }
@@ -174,10 +163,6 @@ public class BooksController : ControllerBase
             }
         }
 
-        private async Task<bool> BookExists(int id)
-        {
-            return await (_context.Books.AnyAsync(e => e.Id == id));
-        }
 
         private string CreateFile(string imgBase64, string imgName)
         {

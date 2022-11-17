@@ -1,6 +1,4 @@
 ﻿@page "/books"
-@inject IBookService _bookService;
-@inject IJSRuntime _js;
 
 <h3>Books</h3>
 
@@ -64,43 +62,4 @@ else
 
         </table>
     }
-}
-@code {
-    private List<BookGetAllDto>? _books;
-    private Response<List<BookGetAllDto>> _response = new() { Success = true };
-
-    protected override async Task OnInitializedAsync()
-    {
-        _response = await _bookService.GetAll();
-
-        if (_response.Success)
-        {
-            _books = _response.Data;
-        }
-    }
-
-    private async Task DeleteBook(int bookId)
-    {
-        if (_books == null)
-        {
-            return;
-        }
-
-        var book = _books.Single(e => bookId == e.Id);
-        var confirm = await _js.InvokeAsync<bool>("confirm", $"Are you sure you want to delete {book.Title}?");
-
-        if (!confirm)
-        {
-            return;
-        }
-
-        var response = await _bookService.Delete(bookId);
-
-        if (response.Success)
-        {
-            await OnInitializedAsync();
-        }
-    }
-
-
 }

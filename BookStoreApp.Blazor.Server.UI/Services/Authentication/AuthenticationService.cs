@@ -4,30 +4,45 @@ using BookStoreApp.Blazor.Server.UI.Services.Base;
 
 namespace BookStoreApp.Blazor.Server.UI.Services.Authentication;
 
-public class AuthenticationService : IAuthenticationService
+public class AuthenticationService : BaseHttpService, IAuthenticationService
 {
     private readonly IClient _httpClient;
     private readonly ILocalStorageService _localStorage;
     private readonly ApiAuthenticationStateProvider _authenticationStateProvider;
 
-    public AuthenticationService(IClient httpClient, ILocalStorageService localStorage, ApiAuthenticationStateProvider authenticationStateProvider)
+    public AuthenticationService(IClient httpClient, ILocalStorageService localStorage, ApiAuthenticationStateProvider authenticationStateProvider) : base(httpClient, localStorage)
     {
         _httpClient = httpClient;
         _localStorage = localStorage;
         _authenticationStateProvider = authenticationStateProvider;
     }
 
-    public async Task<bool> AuthenticateAsync(UserLoginDto loginModel)
+    public async Task<Response<AuthResponse>> AuthenticateAsync(UserLoginDto loginModel)
     {
-        var response = await _httpClient.LoginAsync(loginModel);
+        try
+        {
+            var result = await _httpClient.LoginAsync(loginModel);
 
-        // Store Token
-        await _localStorage.SetItemAsync("accessToken", response.Token);
+            var response = new Response<AuthResponse>
+            {
+                Data = result,
+                Success = true
+            };
 
-        // Change auth state of app
-        _authenticationStateProvider.LoggedIn();
+            // Store Token
+            await _localStorage.SetItemAsync("accessToken", result.Token);
 
-        return true;
+            // Change auth state of app
+            _authenticationStateProvider.LoggedIn();
+
+            
+            return response;
+        }
+        catch (ApiException ex)
+        {
+            return ConvertApiExceptions<AuthResponse>(ex);
+        }
+
     }
 
     public async Task Logout()
