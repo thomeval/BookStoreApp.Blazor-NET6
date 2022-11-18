@@ -1,5 +1,6 @@
 ﻿namespace BookStoreApp.Api.Models.User;
 
+#nullable disable
 public class AuthResponse
 {
     public string UserId { get; set; }

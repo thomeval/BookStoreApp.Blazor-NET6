@@ -12,6 +12,7 @@ namespace BookStoreApp.Api.Controllers;
 [ApiController]
 [Authorize]
 [ProducesResponseType(200)]
+[ProducesResponseType(401)]
 [ProducesResponseType(500)]
 public class BooksController : ControllerBase
 {
