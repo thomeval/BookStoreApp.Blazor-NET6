@@ -12,7 +12,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
 builder.Services.AddBlazoredLocalStorage();
-builder.Services.AddHttpClient<IClient, Client>((cl) => cl.BaseAddress = new Uri("https://localhost:7087"));
+builder.Services.AddHttpClient<IClient, Client>((cl) => cl.BaseAddress = new Uri(builder.Configuration["BaseAddress"]));
 
 // NOTE: Order matters, since AuthenticationService needs HttpClient.
 builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
