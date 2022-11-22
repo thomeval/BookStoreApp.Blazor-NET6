@@ -16,9 +16,15 @@ var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
+var baseAddress = "https://localhost:7087";
+
+if (builder.HostEnvironment.IsProduction())
+{
+    baseAddress = "https://bookstoreappapi20221118095336.azurewebsites.net/";
+}
 builder.Services.AddBlazoredLocalStorage();
 
-builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri("https://localhost:7087") });
+builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(baseAddress) });
 builder.Services.AddScoped<IClient, Client>();
 
 // NOTE: Order matters, since AuthenticationService needs HttpClient.

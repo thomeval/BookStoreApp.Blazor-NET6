@@ -72,7 +72,6 @@ public static class DefaultData
                 {
                     RoleId = "ff4ec3ff-8d44-4142-985f-41e95c46efba",
                     UserId = "a7fb1a78-daa2-4df8-b9a9-3417de79dd54"
-
                 },
 
                 new IdentityUserRole<string>
