@@ -1,0 +1,1 @@
+Book Cover images will be stored in this folder.
